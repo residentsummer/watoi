@@ -101,7 +101,9 @@ int main(int argc, const char * argv[]) {
     }
 
     for (NSManagedObject *msg in results) {
-        NSLog(@"%@", [msg valueForKey:@"text"]);
+        NSString *sender = [[msg valueForKey:@"isFromMe"] intValue] ?
+                            @"me" : [msg valueForKey:@"fromJID"];
+        NSLog(@"%@: %@", sender, [msg valueForKey:@"text"]);
     }
 }
 
@@ -171,7 +173,9 @@ int main(int argc, const char * argv[]) {
     results = [self executeQuery:@"SELECT * FROM messages LIMIT 100;"];
 
     for (NSDictionary *row in results) {
-        NSLog(@"%@", [row objectForKey:@"data"]);
+        NSString *sender = [[row objectForKey:@"key_from_me"] intValue] ?
+                            @"me" : [row objectForKey:@"key_remote_jid"];
+        NSLog(@"%@: %@", sender, [row objectForKey:@"data"]);
     }
 }
 
