@@ -133,12 +133,29 @@ int main(int argc, const char * argv[]) {
         int columnsCount = sqlite3_data_count(prepared);
 
         for (int i = 0; i < columnsCount; ++i) {
-            const char *text = (const char *) sqlite3_column_text(prepared, i);
-            if (text) {
-                [row addObject:[NSString stringWithUTF8String:text]];
-            } else {
-                [row addObject:[NSNull null]];
+            int columnType = sqlite3_column_type(prepared, i);
+            NSObject *value = nil;
+
+            switch (columnType) {
+                case SQLITE_INTEGER:
+                    value = [NSNumber numberWithInt:sqlite3_column_int(prepared, i)];
+                    break;
+                case SQLITE_FLOAT:
+                    value = [NSNumber numberWithDouble:sqlite3_column_double(prepared, i)];
+                    break;
+                case SQLITE_TEXT:
+                    value = [NSString stringWithUTF8String:(const char *) sqlite3_column_text(prepared, i)];
+                    break;
+                case SQLITE_BLOB: // Ignore blobs for now
+                case SQLITE_NULL:
+                    break;
             }
+
+            if (!value) {
+                value = [NSNull null];
+            }
+
+            [row addObject:value];
         }
 
         [results addObject:[NSDictionary dictionaryWithObjects:row
