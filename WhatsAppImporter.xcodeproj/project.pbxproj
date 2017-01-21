@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		328769191E2E96B1004139D8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 328769181E2E96B1004139D8 /* main.m */; };
+		32DB11571E33A294007406CA /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 32DB11561E33A294007406CA /* libsqlite3.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,7 @@
 /* Begin PBXFileReference section */
 		328769151E2E96B1004139D8 /* whatsapp-importer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "whatsapp-importer"; sourceTree = BUILT_PRODUCTS_DIR; };
 		328769181E2E96B1004139D8 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		32DB11561E33A294007406CA /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +34,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				32DB11571E33A294007406CA /* libsqlite3.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -43,6 +46,7 @@
 			children = (
 				328769171E2E96B1004139D8 /* WhatsAppImporter */,
 				328769161E2E96B1004139D8 /* Products */,
+				32DB11551E33A293007406CA /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -60,6 +64,14 @@
 				328769181E2E96B1004139D8 /* main.m */,
 			);
 			path = WhatsAppImporter;
+			sourceTree = "<group>";
+		};
+		32DB11551E33A293007406CA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				32DB11561E33A294007406CA /* libsqlite3.tbd */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -248,6 +260,7 @@
 				3287691E1E2E96B1004139D8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
