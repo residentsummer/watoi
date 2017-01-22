@@ -82,7 +82,6 @@ int main(int argc, const char * argv[]) {
 }
 
 - (void) dumpEntityDescriptions {
-    NSAssert(self.mom != nil, @"MOM must be initialized to dump descriptions");
     for (NSEntityDescription* desc in self.mom.entities) {
         NSLog(@"%@\n\n", desc.name);
     }
@@ -108,6 +107,7 @@ int main(int argc, const char * argv[]) {
 }
 
 - (NSMutableArray *) executeQuery:(NSString *)query {
+    NSNull *null = [NSNull null];  // Stupid singleton
     NSMutableArray *results = [NSMutableArray new];
     NSMutableArray *columnNames = nil;
     sqlite3_stmt *prepared;
@@ -140,7 +140,7 @@ int main(int argc, const char * argv[]) {
 
             switch (columnType) {
                 case SQLITE_INTEGER:
-                    value = [NSNumber numberWithInt:sqlite3_column_int(prepared, i)];
+                    value = [NSNumber numberWithLongLong:sqlite3_column_int64(prepared, i)];
                     break;
                 case SQLITE_FLOAT:
                     value = [NSNumber numberWithDouble:sqlite3_column_double(prepared, i)];
@@ -154,7 +154,7 @@ int main(int argc, const char * argv[]) {
             }
 
             if (!value) {
-                value = [NSNull null];
+                value = null;
             }
 
             [row addObject:value];
