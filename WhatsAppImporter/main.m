@@ -13,14 +13,7 @@
 @interface Importer : NSObject
 - (void) initializeCoreDataWithMomd:(NSString *)momdPath andDatabase:(NSString *)dbPath;
 - (void) initializeAndroidStoreFromPath:(NSString *)storePath;
-- (void) dumpEntityDescriptions;
-- (void) peekAndroidMessages;
-- (void) peekiOSMessages;
-
-@property (nonatomic, strong) NSManagedObjectContext *moc;
-@property (nonatomic, strong) NSManagedObjectModel *mom;
-@property (nonatomic, strong) NSPersistentStore *store;
-@property (nonatomic) sqlite3 *androidStore;
+- (void) import;
 @end
 
 int main(int argc, const char * argv[]) {
@@ -41,12 +34,30 @@ int main(int argc, const char * argv[]) {
         [imp initializeAndroidStoreFromPath:[args objectAtIndex:0]];
         [imp initializeCoreDataWithMomd:[args objectAtIndex:1]
                             andDatabase:[args objectAtIndex:2]];
-        //[imp dumpEntityDescriptions];
-        [imp peekAndroidMessages];
+        [imp import];
     }
     return 0;
 }
 
+// The meat
+
+@interface Importer ()
+@property (nonatomic, strong) NSManagedObjectContext *moc;
+@property (nonatomic, strong) NSManagedObjectModel *mom;
+@property (nonatomic, strong) NSPersistentStore *store;
+@property (nonatomic) sqlite3 *androidStore;
+
+@property (nonatomic, strong) NSMutableDictionary *chats;
+@property (nonatomic, strong) NSMutableDictionary *chatMembers;
+
+- (void) importChats;
+- (void) saveCoreData;
+
+// Debug stuff
+- (void) dumpEntityDescriptions;
+- (void) peekAndroidMessages;
+- (void) peekiOSMessages;
+@end
 
 @implementation Importer
 
@@ -79,6 +90,11 @@ int main(int argc, const char * argv[]) {
 
     NSLog(@"Android store loaded");
     self.androidStore = store;
+}
+
+- (void) import {
+    //[self dumpEntityDescriptions];
+    [self importChats];
 }
 
 - (void) dumpEntityDescriptions {
@@ -176,6 +192,95 @@ int main(int argc, const char * argv[]) {
         NSString *sender = [[row objectForKey:@"key_from_me"] intValue] ?
                             @"me" : [row objectForKey:@"key_remote_jid"];
         NSLog(@"%@: %@", sender, [row objectForKey:@"data"]);
+    }
+}
+
+- (void) importChats {
+    NSArray * androidChats = [self executeQuery:@"SELECT * FROM chat_list"];
+    NSNull *null = [NSNull null];  // Stupid singleton
+
+    // Support structures for messages import
+    self.chats = [NSMutableDictionary new];
+    self.chatMembers = [NSMutableDictionary new];
+
+    for (NSDictionary *achat in androidChats) {
+        NSManagedObject *chat = [NSEntityDescription insertNewObjectForEntityForName:@"WAChatSession"
+                                                               inManagedObjectContext:self.moc];
+        BOOL isGroup = ([achat objectForKey:@"subject"] != null);
+        NSString *chatJID = [achat objectForKey:@"key_remote_jid"];
+
+        [chat setValue:chatJID forKey:@"contactJID"];
+
+        NSNumber *archived = [NSNumber numberWithBool:([achat objectForKey:@"archived"] != null)];
+        [chat setValue:archived forKey:@"archived"];
+
+        // This field should contain contact name for non-groups
+        NSString *partnerName = [achat objectForKey:@"subject"];
+        if ((id) partnerName == null) {
+            partnerName = @"";
+        }
+        [chat setValue:partnerName forKey:@"partnerName"];
+
+        // FIXME
+        [chat setValue:@0 forKey:@"messageCounter"];
+
+        // We'll use this dict to link messages with chats
+        [self.chats setObject:chat forKey:chatJID];
+
+        if (!isGroup) {
+            continue;
+        }
+
+        // Group chats should have associated GroupInfo objects
+        NSManagedObject *group = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupInfo"
+                                                               inManagedObjectContext:self.moc];
+        // It's stored in millis in android db
+        double sinceEpoch = ([[achat objectForKey:@"creation"] doubleValue] / 1000.0);
+        [group setValue:[NSDate dateWithTimeIntervalSince1970:sinceEpoch] forKey:@"creationDate"];
+
+        [group setValue:chat forKey:@"chatSession"];
+
+        // Messages in groups are linked to members
+        NSMutableDictionary *members = [NSMutableDictionary new];
+        [self.chatMembers setObject:members forKey:chatJID];
+
+        // Insert group members
+        NSString *query = @"SELECT * from group_participants WHERE gjid == '%@'";
+        NSMutableArray *amembers = [self executeQuery:[NSString stringWithFormat:query, chatJID]];
+        for (NSDictionary *amember in amembers) {
+            NSString *memberJID = [amember objectForKey:@"jid"];
+            if ([memberJID isEqualToString:@""]) {
+                // This entry corresponds to our account, should add it as well.
+                // But how to get the JID?
+                continue;
+            }
+
+            NSManagedObject *member = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupMember"
+                                                                    inManagedObjectContext:self.moc];
+
+            [member setValue:memberJID forKey:@"memberJID"];
+            [member setValue:[amember objectForKey:@"admin"] forKey:@"isAdmin"];
+            // Inactive members are in group_participants_history, I guess
+            [member setValue:@YES forKey:@"isActive"];
+
+            // FIXME Take it from wa.db
+            NSString *fakeContactName = [memberJID componentsSeparatedByString:@"@"][0];
+            [member setValue:fakeContactName forKey:@"contactName"];
+
+            // Associate with current chat
+            [member setValue:chat forKey:@"chatSession"];
+            [members setObject:member forKey:memberJID];
+        }
+    }
+
+    [self saveCoreData];
+    NSLog(@"Loaded %lu chat(s)", (unsigned long)[androidChats count]);
+}
+
+- (void) saveCoreData {
+    NSError *error = nil;
+    if ([self.moc save:&error] == NO) {
+        NSAssert(NO, @"Error saving context: %@\n%@", [error localizedDescription], [error userInfo]);
     }
 }
 
