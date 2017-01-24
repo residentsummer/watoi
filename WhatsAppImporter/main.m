@@ -10,6 +10,19 @@
 #import <CoreData/CoreData.h>
 #import <sqlite3.h>
 
+typedef enum {
+    // I saw a msg with type == -1
+    MSG_TEXT = 0,
+    MSG_IMAGE = 1,
+    MSG_AUDIO = 2,
+    MSG_VIDEO = 3,
+    MSG_CONTACT = 4,
+    MSG_LOCATION = 5,
+    MSG_CALL = 8,
+    MSG_WTF = 10,
+    MSG_WTF2 = 13,
+} WAMsgType;
+
 @interface Importer : NSObject
 - (void) initializeCoreDataWithMomd:(NSString *)momdPath andDatabase:(NSString *)dbPath;
 - (void) initializeAndroidStoreFromPath:(NSString *)storePath;
@@ -95,6 +108,7 @@ int main(int argc, const char * argv[]) {
 - (void) import {
     //[self dumpEntityDescriptions];
     [self importChats];
+    [self importMessages];
 }
 
 - (void) dumpEntityDescriptions {
@@ -275,6 +289,97 @@ int main(int argc, const char * argv[]) {
 
     [self saveCoreData];
     NSLog(@"Loaded %lu chat(s)", (unsigned long)[androidChats count]);
+}
+
+- (void) importMessages {
+    NSString *query = @"SELECT * FROM messages where"
+                       " key_remote_jid == '%@'"
+                       " AND status != 6"  // Some system messages
+                       //" LIMIT 100;"
+    ;
+    id null = [NSNull null];  // Stupid singleton
+
+    for (NSString *chatJID in self.chats) {
+        NSManagedObject *chat = [self.chats objectForKey:chatJID];
+        NSDictionary *members = [self.chatMembers objectForKey:chatJID];
+        NSMutableArray * results = [self executeQuery:[NSString stringWithFormat:query, chatJID]];
+        BOOL isGroup = ([chat valueForKey:@"groupInfo"] == null);
+        NSLog(@"Importing messages for chat: %@", [chat valueForKey:@"contactJID"]);
+
+        for (NSDictionary *amsg in results) {
+            NSManagedObject *msg = [NSEntityDescription insertNewObjectForEntityForName:@"WAMessage"
+                                                                 inManagedObjectContext:self.moc];
+            BOOL fromMe = [[amsg objectForKey:@"key_from_me"] intValue];
+
+            double sinceEpoch = ([[amsg objectForKey:@"timestamp"] doubleValue] / 1000.0);
+            [msg setValue:[NSDate dateWithTimeIntervalSince1970:sinceEpoch] forKey:@"messageDate"];
+            // TODO sentDate
+
+            [msg setValue:[NSNumber numberWithBool:fromMe] forKey:@"isFromMe"];
+            if (!fromMe) {
+                [msg setValue:chatJID forKey:@"fromJID"];
+                if (isGroup) {
+                    NSString *senderJID = [amsg objectForKey:@"remote_resource"];
+                    [msg setValue:[members objectForKey:senderJID] forKey:@"groupMember"];
+                }
+            } else {
+                [msg setValue:chatJID forKey:@"toJID"];
+            }
+
+            // What is that? Some jabber stuff?
+            [msg setValue:[amsg objectForKey:@"key_id"] forKey:@"stanzaID"];
+
+            // IDK, all msgs in a real ChatStorage had @2 here
+            [msg setValue:@2 forKey:@"dataItemVersion"];
+
+            // Spotlight stuff?
+            //        [msg setValue:@0 forKey:@"docID"];
+            //        [msg setValue:@0 forKey:@"spotlightStatus"];
+            // Don't know what is it
+            //        [msg setValue:@0 forKey:@"flags"];
+            //        [msg setValue:@0 forKey:@"groupEventType"];
+            //        [msg setValue:@0 forKey:@"mediaSectionID"];
+            //        [msg setValue:@0 forKey:@"messageStatus"];
+
+            // Here goes the root of all suffering
+            WAMsgType type = [[amsg objectForKey:@"media_wa_type"] intValue];
+            NSString *text = [amsg objectForKey:@"data"]; // or null
+            if (type != MSG_TEXT) {
+                // Can't import media yet, but we'll have strange conversatios
+                // if media messages are gone completely - put placeholders.
+                NSString *prefix = null;
+                switch (type) {
+                    case MSG_IMAGE: prefix = @"<image>"; break;
+                    case MSG_AUDIO: prefix = @"<audio>"; break;
+                    case MSG_VIDEO: prefix = @"<video>"; break;
+                    case MSG_CONTACT: prefix = @"<contact>"; break;
+                    case MSG_LOCATION: prefix = @"<location>"; break;
+                    case MSG_CALL: prefix = @"<call>"; break;
+                    case MSG_WTF: prefix = @"<WTF>"; break;
+                    case MSG_WTF2: prefix = @"<WTF>"; break;
+                    case MSG_TEXT: break;
+                }
+
+                // Prepend media caption (if it exists) to the type
+                NSString *caption = [amsg objectForKey:@"media_caption"];
+                if ((id) caption != null) {
+                    text = [NSString stringWithFormat:@"%@: %@", prefix, caption];
+                } else {
+                    text = prefix;
+                }
+            }
+            [msg setValue:@(MSG_TEXT) forKey:@"messageType"];
+            if ((id) text != null) {
+                [msg setValue:text forKey:@"text"];
+            } else {
+                NSLog(@"null text detected: %@", amsg);
+            }
+
+            [msg setValue:chat forKey:@"chatSession"];
+            //NSLog(@"(%d) %@", type, text);
+        }
+        [self saveCoreData];
+    }
 }
 
 - (void) saveCoreData {
