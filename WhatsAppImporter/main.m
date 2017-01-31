@@ -303,7 +303,7 @@ int main(int argc, const char * argv[]) {
         NSManagedObject *chat = [self.chats objectForKey:chatJID];
         NSDictionary *members = [self.chatMembers objectForKey:chatJID];
         NSMutableArray * results = [self executeQuery:[NSString stringWithFormat:query, chatJID]];
-        BOOL isGroup = ([chat valueForKey:@"groupInfo"] == null);
+        BOOL isGroup = ([chat valueForKey:@"groupInfo"] != nil);
         NSLog(@"Importing messages for chat: %@", [chat valueForKey:@"contactJID"]);
 
         for (NSDictionary *amsg in results) {
@@ -320,7 +320,12 @@ int main(int argc, const char * argv[]) {
                 [msg setValue:chatJID forKey:@"fromJID"];
                 if (isGroup) {
                     NSString *senderJID = [amsg objectForKey:@"remote_resource"];
-                    [msg setValue:[members objectForKey:senderJID] forKey:@"groupMember"];
+                    NSManagedObject *member = [members objectForKey:senderJID];
+                    if (member != nil) {
+                        [msg setValue:member forKey:@"groupMember"];
+                    } else {
+                        NSLog(@"No member for message: %@", senderJID);
+                    }
                 }
             } else {
                 [msg setValue:chatJID forKey:@"toJID"];
