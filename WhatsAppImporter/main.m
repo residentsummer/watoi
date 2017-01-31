@@ -329,6 +329,8 @@ int main(int argc, const char * argv[]) {
                 }
             } else {
                 [msg setValue:chatJID forKey:@"toJID"];
+                // Delivered?
+                [msg setValue:@5 forKey:@"messageStatus"];
             }
 
             // What is that? Some jabber stuff?
