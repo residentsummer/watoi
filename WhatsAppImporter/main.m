@@ -295,8 +295,7 @@ int main(int argc, const char * argv[]) {
     NSString *query = @"SELECT * FROM messages where"
                        " key_remote_jid == '%@'"
                        " AND status != 6"  // Some system messages
-                       //" LIMIT 100;"
-    ;
+                       " ORDER BY timestamp";
     id null = [NSNull null];  // Stupid singleton
 
     for (NSString *chatJID in self.chats) {
@@ -305,6 +304,9 @@ int main(int argc, const char * argv[]) {
         NSMutableArray * results = [self executeQuery:[NSString stringWithFormat:query, chatJID]];
         BOOL isGroup = ([chat valueForKey:@"groupInfo"] != nil);
         NSLog(@"Importing messages for chat: %@", [chat valueForKey:@"contactJID"]);
+
+        // This value will increase with message date
+        int sort = 0;
 
         for (NSDictionary *amsg in results) {
             NSManagedObject *msg = [NSEntityDescription insertNewObjectForEntityForName:@"WAMessage"
@@ -332,6 +334,9 @@ int main(int argc, const char * argv[]) {
                 // Delivered?
                 [msg setValue:@5 forKey:@"messageStatus"];
             }
+
+            // Messages show up unordered without this field
+            [msg setValue:[NSNumber numberWithInt:(sort++)] forKey:@"sort"];
 
             // What is that? Some jabber stuff?
             [msg setValue:[amsg objectForKey:@"key_id"] forKey:@"stanzaID"];
@@ -385,6 +390,10 @@ int main(int argc, const char * argv[]) {
             [msg setValue:chat forKey:@"chatSession"];
             //NSLog(@"(%d) %@", type, text);
         }
+
+        // When new message arrive, it's sort field is taken from chat's counter
+        [chat setValue:[NSNumber numberWithInt:sort] forKey:@"messageCounter"];
+
         [self saveCoreData];
     }
 }
