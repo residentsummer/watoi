@@ -74,6 +74,16 @@ int main(int argc, const char * argv[]) {
 
 @implementation Importer
 
+- (id) init {
+    self = [super init];
+
+    // Support structures for messages import
+    self.chats = [NSMutableDictionary new];
+    self.chatMembers = [NSMutableDictionary new];
+
+    return self;
+}
+
 - (void) initializeCoreDataWithMomd:(NSString *)momdPath andDatabase:(NSString *)dbPath {
     NSURL *modelURL = [NSURL fileURLWithPath:momdPath];
     NSManagedObjectModel *mom = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
@@ -107,6 +117,7 @@ int main(int argc, const char * argv[]) {
 
 - (void) import {
     //[self dumpEntityDescriptions];
+    [self loadChats];
     [self importChats];
     [self importMessages];
 }
@@ -213,15 +224,16 @@ int main(int argc, const char * argv[]) {
     NSArray * androidChats = [self executeQuery:@"SELECT * FROM chat_list"];
     NSNull *null = [NSNull null];  // Stupid singleton
 
-    // Support structures for messages import
-    self.chats = [NSMutableDictionary new];
-    self.chatMembers = [NSMutableDictionary new];
-
     for (NSDictionary *achat in androidChats) {
-        NSManagedObject *chat = [NSEntityDescription insertNewObjectForEntityForName:@"WAChatSession"
-                                                               inManagedObjectContext:self.moc];
-        BOOL isGroup = ([achat objectForKey:@"subject"] != null);
         NSString *chatJID = [achat objectForKey:@"key_remote_jid"];
+        if ([self.chats objectForKey:chatJID] != nil) {
+            // Skip chats that we've loaded from iOS backup
+            continue;
+        }
+
+        NSManagedObject *chat = [NSEntityDescription insertNewObjectForEntityForName:@"WAChatSession"
+                                                              inManagedObjectContext:self.moc];
+        BOOL isGroup = ([achat objectForKey:@"subject"] != null);
 
         [chat setValue:chatJID forKey:@"contactJID"];
 
@@ -289,6 +301,37 @@ int main(int argc, const char * argv[]) {
 
     [self saveCoreData];
     NSLog(@"Loaded %lu chat(s)", (unsigned long)[androidChats count]);
+}
+
+- (void) loadChats {
+    NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"WAChatSession"];
+    fetchRequest.returnsObjectsAsFaults = NO;
+
+    NSError *error = nil;
+    NSArray *results = [self.moc executeFetchRequest:fetchRequest error:&error];
+    if (!results) {
+        NSLog(@"Error fetching objects: %@\n%@", [error localizedDescription], [error userInfo]);
+        abort();
+    }
+
+    for (NSManagedObject *session in results) {
+        NSString *chatJID = [session valueForKey:@"contactJID"];
+        BOOL isGroup = ([session valueForKey:@"groupInfo"] != nil);
+
+        [self.chats setObject:session forKey:chatJID];
+        if (!isGroup) {
+            continue;
+        }
+
+        // Messages in groups are linked to members
+        NSMutableDictionary *membersDict = [NSMutableDictionary new];
+        [self.chatMembers setObject:membersDict forKey:chatJID];
+
+        NSSet *members = [session valueForKey:@"groupMembers"];
+        for (NSManagedObject *member in members) {
+            [membersDict setObject:member forKey:[member valueForKey:@"memberJID"]];
+        }
+    }
 }
 
 - (void) importMessages {
