@@ -239,14 +239,14 @@ int main(int argc, const char * argv[]) {
             NSNumber *archived = [NSNumber numberWithBool:([achat objectForKey:@"archived"] != null)];
             [chat setValue:archived forKey:@"archived"];
 
-            // FIXME
+            // Will be updated later
             [chat setValue:@0 forKey:@"messageCounter"];
 
             // This field should contain contact name for non-groups
             NSString *partnerName = [achat objectForKey:@"subject"];
             isGroup = ((id) partnerName != null);
             if (!isGroup) {
-                // FIXME Take it from wa.db
+                // FIXME Take it from wa.db of from other chats
                 partnerName = [chatJID componentsSeparatedByString:@"@"][0];
             }
             [chat setValue:partnerName forKey:@"partnerName"];
@@ -306,7 +306,7 @@ int main(int argc, const char * argv[]) {
             // Active members were loaded from backup, I guess
             [member setValue:@NO forKey:@"isActive"];
 
-            // FIXME Take it from wa.db
+            // FIXME Take it from wa.db of from other chats
             NSString *fakeContactName = [memberJID componentsSeparatedByString:@"@"][0];
             [member setValue:fakeContactName forKey:@"contactName"];
 
@@ -449,6 +449,23 @@ int main(int argc, const char * argv[]) {
 
             [msg setValue:chat forKey:@"chatSession"];
             //NSLog(@"(%d) %@", type, text);
+        }
+
+        // Fix sort fields for newly arrived messages
+        NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"WAMessage"];
+        NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"sort" ascending:YES];
+        [fetchRequest setSortDescriptors:[NSArray arrayWithObject:sortDescriptor]];
+        // Newly created messages won't by fetched (as intended), see "setIncludesPendingChanges"
+
+        NSError *error = nil;
+        NSArray *newMessages = [self.moc executeFetchRequest:fetchRequest error:&error];
+        if (!newMessages) {
+            NSLog(@"Error fetching objects: %@\n%@", [error localizedDescription], [error userInfo]);
+            abort();
+        }
+
+        for (NSManagedObject *msg in newMessages) {
+            [msg setValue:[NSNumber numberWithInt:(sort++)] forKey:@"sort"];
         }
 
         // When new message arrive, it's sort field is taken from chat's counter
