@@ -370,14 +370,16 @@ int main(int argc, const char * argv[]) {
         NSDictionary *members = [self.chatMembers objectForKey:chatJID];
         NSMutableArray *results = [self executeQuery:[NSString stringWithFormat:query, chatJID]];
         BOOL isGroup = ([chat valueForKey:@"groupInfo"] != nil);
+        NSManagedObject *msg = nil;
+
         NSLog(@"Importing messages for chat: %@", [chat valueForKey:@"contactJID"]);
 
         // This value will increase with message date
         int sort = 0;
 
         for (NSDictionary *amsg in results) {
-            NSManagedObject *msg = [NSEntityDescription insertNewObjectForEntityForName:@"WAMessage"
-                                                                 inManagedObjectContext:self.moc];
+            msg = [NSEntityDescription insertNewObjectForEntityForName:@"WAMessage"
+                                                inManagedObjectContext:self.moc];
             BOOL fromMe = [[amsg objectForKey:@"key_from_me"] intValue];
 
             NSDate * timestamp = [self convertAndroidTimestamp:[amsg objectForKey:@"timestamp"]];
@@ -471,12 +473,19 @@ int main(int argc, const char * argv[]) {
             abort();
         }
 
-        for (NSManagedObject *msg in newMessages) {
+        for (msg in newMessages) {
             [msg setValue:[NSNumber numberWithInt:(sort++)] forKey:@"sort"];
         }
 
         // When new message arrive, it's sort field is taken from chat's counter
         [chat setValue:[NSNumber numberWithInt:sort] forKey:@"messageCounter"];
+
+        // Link last message
+        if (msg != nil) {
+            [chat setValue:msg forKey:@"lastMessage"];
+            [chat setValue:[msg valueForKey:@"text"] forKey:@"lastMessageText"];
+            [chat setValue:[msg valueForKey:@"messageDate"] forKey:@"lastMessageDate"];
+        }
 
         [self saveCoreData];
     }
