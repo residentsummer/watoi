@@ -226,68 +226,85 @@ int main(int argc, const char * argv[]) {
 
     for (NSDictionary *achat in androidChats) {
         NSString *chatJID = [achat objectForKey:@"key_remote_jid"];
-        if ([self.chats objectForKey:chatJID] != nil) {
-            // Skip chats that we've loaded from iOS backup
-            continue;
+        NSManagedObject *chat = [self.chats objectForKey:chatJID];
+        NSMutableDictionary *members = nil;
+        BOOL isGroup = FALSE;
+
+        if (chat == nil) {
+            chat = [NSEntityDescription insertNewObjectForEntityForName:@"WAChatSession"
+                                                 inManagedObjectContext:self.moc];
+
+            [chat setValue:chatJID forKey:@"contactJID"];
+
+            NSNumber *archived = [NSNumber numberWithBool:([achat objectForKey:@"archived"] != null)];
+            [chat setValue:archived forKey:@"archived"];
+
+            // FIXME
+            [chat setValue:@0 forKey:@"messageCounter"];
+
+            // This field should contain contact name for non-groups
+            NSString *partnerName = [achat objectForKey:@"subject"];
+            isGroup = ((id) partnerName != null);
+            if (!isGroup) {
+                // FIXME Take it from wa.db
+                partnerName = [chatJID componentsSeparatedByString:@"@"][0];
+            }
+            [chat setValue:partnerName forKey:@"partnerName"];
+
+            // We'll use this dict to link messages with chats
+            [self.chats setObject:chat forKey:chatJID];
+
+            if (!isGroup) {
+                continue;
+            }
+
+            // Group chats should have associated GroupInfo objects
+            NSManagedObject *group = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupInfo"
+                                                                   inManagedObjectContext:self.moc];
+            // It's stored in millis in android db
+            double sinceEpoch = ([[achat objectForKey:@"creation"] doubleValue] / 1000.0);
+            [group setValue:[NSDate dateWithTimeIntervalSince1970:sinceEpoch] forKey:@"creationDate"];
+
+            [group setValue:chat forKey:@"chatSession"];
+
+            // Messages in groups are linked to members
+            members = [NSMutableDictionary new];
+            [self.chatMembers setObject:members forKey:chatJID];
+        } else {
+            isGroup = ([chat valueForKey:@"groupInfo"] != nil);
+            members = [self.chatMembers objectForKey:chatJID];
         }
-
-        NSManagedObject *chat = [NSEntityDescription insertNewObjectForEntityForName:@"WAChatSession"
-                                                              inManagedObjectContext:self.moc];
-        BOOL isGroup = ([achat objectForKey:@"subject"] != null);
-
-        [chat setValue:chatJID forKey:@"contactJID"];
-
-        NSNumber *archived = [NSNumber numberWithBool:([achat objectForKey:@"archived"] != null)];
-        [chat setValue:archived forKey:@"archived"];
-
-        // This field should contain contact name for non-groups
-        NSString *partnerName = [achat objectForKey:@"subject"];
-        if ((id) partnerName == null) {
-            partnerName = @"";
-        }
-        [chat setValue:partnerName forKey:@"partnerName"];
-
-        // FIXME
-        [chat setValue:@0 forKey:@"messageCounter"];
-
-        // We'll use this dict to link messages with chats
-        [self.chats setObject:chat forKey:chatJID];
 
         if (!isGroup) {
             continue;
         }
-
-        // Group chats should have associated GroupInfo objects
-        NSManagedObject *group = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupInfo"
-                                                               inManagedObjectContext:self.moc];
-        // It's stored in millis in android db
-        double sinceEpoch = ([[achat objectForKey:@"creation"] doubleValue] / 1000.0);
-        [group setValue:[NSDate dateWithTimeIntervalSince1970:sinceEpoch] forKey:@"creationDate"];
-
-        [group setValue:chat forKey:@"chatSession"];
-
-        // Messages in groups are linked to members
-        NSMutableDictionary *members = [NSMutableDictionary new];
-        [self.chatMembers setObject:members forKey:chatJID];
 
         // Insert group members
         NSString *query = @"SELECT * from group_participants WHERE gjid == '%@'";
         NSMutableArray *amembers = [self executeQuery:[NSString stringWithFormat:query, chatJID]];
         for (NSDictionary *amember in amembers) {
             NSString *memberJID = [amember objectForKey:@"jid"];
+            NSManagedObject *member = nil;
+
             if ([memberJID isEqualToString:@""]) {
                 // This entry corresponds to our account, should add it as well.
                 // But how to get the JID?
                 continue;
             }
 
-            NSManagedObject *member = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupMember"
+            // Check if this member was loaded from iOS backup
+            member = [members objectForKey:memberJID];
+            if (member != nil) {
+                continue;
+            }
+
+            member = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupMember"
                                                                     inManagedObjectContext:self.moc];
 
             [member setValue:memberJID forKey:@"memberJID"];
             [member setValue:[amember objectForKey:@"admin"] forKey:@"isAdmin"];
-            // Inactive members are in group_participants_history, I guess
-            [member setValue:@YES forKey:@"isActive"];
+            // Active members were loaded from backup, I guess
+            [member setValue:@NO forKey:@"isActive"];
 
             // FIXME Take it from wa.db
             NSString *fakeContactName = [memberJID componentsSeparatedByString:@"@"][0];
@@ -344,7 +361,7 @@ int main(int argc, const char * argv[]) {
     for (NSString *chatJID in self.chats) {
         NSManagedObject *chat = [self.chats objectForKey:chatJID];
         NSDictionary *members = [self.chatMembers objectForKey:chatJID];
-        NSMutableArray * results = [self executeQuery:[NSString stringWithFormat:query, chatJID]];
+        NSMutableArray *results = [self executeQuery:[NSString stringWithFormat:query, chatJID]];
         BOOL isGroup = ([chat valueForKey:@"groupInfo"] != nil);
         NSLog(@"Importing messages for chat: %@", [chat valueForKey:@"contactJID"]);
 
