@@ -436,8 +436,8 @@ int main(int argc, const char * argv[]) {
                     case MSG_CONTACT: prefix = @"<contact>"; break;
                     case MSG_LOCATION: prefix = @"<location>"; break;
                     case MSG_CALL: prefix = @"<call>"; break;
-                    case MSG_WTF: prefix = @"<WTF>"; break;
-                    case MSG_WTF2: prefix = @"<WTF>"; break;
+                    case MSG_WTF: prefix = @"<unknown event>"; break;
+                    case MSG_WTF2: prefix = @"<unknown event>"; break;
                     case MSG_TEXT: break;
                 }
 
