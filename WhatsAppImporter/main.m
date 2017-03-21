@@ -66,6 +66,8 @@ int main(int argc, const char * argv[]) {
 - (void) importChats;
 - (void) saveCoreData;
 
+- (NSDate *) convertAndroidTimestamp:(NSNumber *)timestamp;
+
 // Debug stuff
 - (void) dumpEntityDescriptions;
 - (void) peekAndroidMessages;
@@ -220,6 +222,11 @@ int main(int argc, const char * argv[]) {
     }
 }
 
+- (NSDate *) convertAndroidTimestamp:(NSNumber *)timestamp {
+    // It's stored in millis in android db
+    return [NSDate dateWithTimeIntervalSince1970:([timestamp doubleValue] / 1000.0)];
+}
+
 - (void) importChats {
     NSArray * androidChats = [self executeQuery:@"SELECT * FROM chat_list"];
     NSNull *null = [NSNull null];  // Stupid singleton
@@ -261,9 +268,9 @@ int main(int argc, const char * argv[]) {
             // Group chats should have associated GroupInfo objects
             NSManagedObject *group = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupInfo"
                                                                    inManagedObjectContext:self.moc];
-            // It's stored in millis in android db
-            double sinceEpoch = ([[achat objectForKey:@"creation"] doubleValue] / 1000.0);
-            [group setValue:[NSDate dateWithTimeIntervalSince1970:sinceEpoch] forKey:@"creationDate"];
+
+            NSDate *creation = [self convertAndroidTimestamp:[achat objectForKey:@"creation"]];
+            [group setValue:creation forKey:@"creationDate"];
 
             [group setValue:chat forKey:@"chatSession"];
 
@@ -299,7 +306,7 @@ int main(int argc, const char * argv[]) {
             }
 
             member = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupMember"
-                                                                    inManagedObjectContext:self.moc];
+                                                   inManagedObjectContext:self.moc];
 
             [member setValue:memberJID forKey:@"memberJID"];
             [member setValue:[amember objectForKey:@"admin"] forKey:@"isAdmin"];
@@ -373,8 +380,8 @@ int main(int argc, const char * argv[]) {
                                                                  inManagedObjectContext:self.moc];
             BOOL fromMe = [[amsg objectForKey:@"key_from_me"] intValue];
 
-            double sinceEpoch = ([[amsg objectForKey:@"timestamp"] doubleValue] / 1000.0);
-            [msg setValue:[NSDate dateWithTimeIntervalSince1970:sinceEpoch] forKey:@"messageDate"];
+            NSDate * timestamp = [self convertAndroidTimestamp:[amsg objectForKey:@"timestamp"]];
+            [msg setValue:timestamp forKey:@"messageDate"];
             // TODO sentDate
 
             [msg setValue:[NSNumber numberWithBool:fromMe] forKey:@"isFromMe"];
