@@ -39,7 +39,7 @@ int main(int argc, const char * argv[]) {
         NSMutableArray *args = [NSMutableArray new];
         // Skip executable name
         for (unsigned int i = 1; i < argc; ++i) {
-            [args addObject:[NSString stringWithCString:argv[i]]];
+            [args addObject:[NSString stringWithUTF8String:argv[i]]];
             NSLog(@"%@", [args objectAtIndex:(i-1)]);
         }
 
