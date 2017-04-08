@@ -215,6 +215,29 @@ int main(int argc, const char * argv[]) {
     return [NSDate dateWithTimeIntervalSince1970:([timestamp doubleValue] / 1000.0)];
 }
 
+- (NSManagedObject *) addMissingMember:(NSString *)memberJID toChat:(NSString *)chatJID asAdmin:(NSNumber *)isAdmin
+{
+    NSManagedObject *member = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupMember"
+                                                            inManagedObjectContext:self.moc];
+    NSMutableDictionary * members = [self.chatMembers objectForKey:chatJID];
+    NSManagedObject *chat = [self.chats objectForKey:chatJID];
+
+    [member setValue:memberJID forKey:@"memberJID"];
+    [member setValue:isAdmin forKey:@"isAdmin"];
+    // Active members were loaded from backup
+    [member setValue:@NO forKey:@"isActive"];
+
+    // FIXME Take it from wa.db of from other chats
+    NSString *fakeContactName = [memberJID componentsSeparatedByString:@"@"][0];
+    [member setValue:fakeContactName forKey:@"contactName"];
+
+    // Associate with current chat
+    [member setValue:chat forKey:@"chatSession"];
+    [members setObject:member forKey:memberJID];
+
+    return member;
+}
+
 - (void) importChats {
     NSArray * androidChats = [self executeQuery:@"SELECT * FROM chat_list"];
     NSNull *null = [NSNull null];  // Stupid singleton
@@ -296,25 +319,12 @@ int main(int argc, const char * argv[]) {
 
             // Check if this member was loaded from iOS backup
             member = [members objectForKey:memberJID];
-            if (member != nil) {
-                continue;
+            if (member == nil) {
+                NSLog(@"\t not found member %@", memberJID);
+                [self addMissingMember:memberJID
+                                toChat:chatJID
+                               asAdmin:[amember objectForKey:@"admin"]];
             }
-
-            member = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupMember"
-                                                   inManagedObjectContext:self.moc];
-
-            [member setValue:memberJID forKey:@"memberJID"];
-            [member setValue:[amember objectForKey:@"admin"] forKey:@"isAdmin"];
-            // Active members were loaded from backup, I guess
-            [member setValue:@NO forKey:@"isActive"];
-
-            // FIXME Take it from wa.db of from other chats
-            NSString *fakeContactName = [memberJID componentsSeparatedByString:@"@"][0];
-            [member setValue:fakeContactName forKey:@"contactName"];
-
-            // Associate with current chat
-            [member setValue:chat forKey:@"chatSession"];
-            [members setObject:member forKey:memberJID];
         }
     }
 
@@ -393,11 +403,12 @@ int main(int argc, const char * argv[]) {
                 if (isGroup) {
                     NSString *senderJID = [amsg objectForKey:@"remote_resource"];
                     NSManagedObject *member = [members objectForKey:senderJID];
-                    if (member != nil) {
-                        [msg setValue:member forKey:@"groupMember"];
-                    } else {
-                        NSLog(@"No member for message: %@", senderJID);
+                    if (member == nil) {
+                        NSLog(@"\t not found sender %@", senderJID);
+                        member = [self addMissingMember:senderJID toChat:chatJID asAdmin:@NO];
                     }
+
+                    [msg setValue:member forKey:@"groupMember"];
                 }
             } else {
                 [msg setValue:chatJID forKey:@"toJID"];
