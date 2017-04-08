@@ -85,6 +85,7 @@ int main(int argc, const char * argv[]) {
     NSPersistentStoreCoordinator *psc = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:mom];
     NSManagedObjectContext *moc = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
     [moc setPersistentStoreCoordinator:psc];
+    [moc setUndoManager:nil];
     self.moc = moc;
 
     NSError *error = nil;
@@ -376,7 +377,7 @@ int main(int argc, const char * argv[]) {
                        " ORDER BY timestamp";
     id null = [NSNull null];  // Stupid singleton
 
-    for (NSString *chatJID in self.chats) {
+    for (NSString *chatJID in self.chats) { @autoreleasepool {
         NSManagedObject *chat = [self.chats objectForKey:chatJID];
         NSDictionary *members = [self.chatMembers objectForKey:chatJID];
         NSMutableArray *results = [self executeQuery:[NSString stringWithFormat:query, chatJID]];
@@ -500,7 +501,7 @@ int main(int argc, const char * argv[]) {
         }
 
         [self saveCoreData];
-    }
+    }}
 }
 
 - (void) saveCoreData {
