@@ -405,7 +405,7 @@ int main(int argc, const char * argv[]) {
                     NSString *senderJID = [amsg objectForKey:@"remote_resource"];
                     NSManagedObject *member = [members objectForKey:senderJID];
                     if (member == nil) {
-                        NSLog(@"\t not found sender %@", senderJID);
+                        NSLog(@"\tmissing sender %@", senderJID);
                         member = [self addMissingMember:senderJID toChat:chatJID asAdmin:@NO];
                     }
 
@@ -475,9 +475,13 @@ int main(int argc, const char * argv[]) {
 
         // Fix sort fields for newly arrived messages
         NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"WAMessage"];
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"chatSession = %@", [chat objectID]];
         NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"sort" ascending:YES];
         [fetchRequest setSortDescriptors:[NSArray arrayWithObject:sortDescriptor]];
-        // Newly created messages won't by fetched (as intended), see "setIncludesPendingChanges"
+        [fetchRequest setPredicate:predicate];
+        fetchRequest.includesPropertyValues = NO;
+        // Do not fetch unsaved messages (eg. ones we've just created)
+        fetchRequest.includesPendingChanges = NO;
 
         NSError *error = nil;
         NSArray *newMessages = [self.moc executeFetchRequest:fetchRequest error:&error];
