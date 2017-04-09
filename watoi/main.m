@@ -30,23 +30,21 @@ typedef enum {
 @end
 
 int main(int argc, const char * argv[]) {
-    if (argc < 4) {
-        NSLog(@"usage: %s <android sqlite> <momd> <iphone sqlite>", argv[0]);
+    if (argc != 4) {
+        NSLog(@"usage: %s <android sqlite> <iphone sqlite> <momd>", argv[0]);
         return 1;
     }
 
     @autoreleasepool {
         NSMutableArray *args = [NSMutableArray new];
-        // Skip executable name
         for (unsigned int i = 1; i < argc; ++i) {
             [args addObject:[NSString stringWithUTF8String:argv[i]]];
-            NSLog(@"%@", [args objectAtIndex:(i-1)]);
         }
 
         Importer *imp = [Importer new];
         [imp initializeAndroidStoreFromPath:[args objectAtIndex:0]];
-        [imp initializeCoreDataWithMomd:[args objectAtIndex:1]
-                            andDatabase:[args objectAtIndex:2]];
+        [imp initializeCoreDataWithMomd:[args objectAtIndex:2]
+                            andDatabase:[args objectAtIndex:1]];
         [imp import];
     }
     return 0;
