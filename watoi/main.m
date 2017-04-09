@@ -62,9 +62,13 @@ int main(int argc, const char * argv[]) {
 @property (nonatomic, strong) NSMutableDictionary *chatMembers;
 
 - (void) importChats;
+- (void) importMessages;
 - (void) saveCoreData;
 
+- (void) loadChats;
+- (NSString *) guessOurJID;
 - (NSDate *) convertAndroidTimestamp:(NSNumber *)timestamp;
+- (NSManagedObject *) addMissingMember:(NSString *)memberJID toChat:(NSString *)chatJID asAdmin:(NSNumber *)isAdmin;
 
 // Debug stuff
 - (void) dumpEntityDescriptions;
