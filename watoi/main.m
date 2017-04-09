@@ -216,8 +216,7 @@ int main(int argc, const char * argv[]) {
     return [NSDate dateWithTimeIntervalSince1970:([timestamp doubleValue] / 1000.0)];
 }
 
-- (NSManagedObject *) addMissingMember:(NSString *)memberJID toChat:(NSString *)chatJID asAdmin:(NSNumber *)isAdmin
-{
+- (NSManagedObject *) addMissingMember:(NSString *)memberJID toChat:(NSString *)chatJID asAdmin:(NSNumber *)isAdmin {
     NSManagedObject *member = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupMember"
                                                             inManagedObjectContext:self.moc];
     NSMutableDictionary * members = [self.chatMembers objectForKey:chatJID];
@@ -242,10 +241,13 @@ int main(int argc, const char * argv[]) {
 - (void) importChats {
     NSArray * androidChats = [self executeQuery:@"SELECT * FROM chat_list"];
     NSNull *null = [NSNull null];  // Stupid singleton
+    NSString *ourJID = nil;
 
     // Load chats from iOS backup - they contain some data,
     // that is hard/impossible to recover from Android backup.
     [self loadChats];
+    // We'll need it on chat members import
+    ourJID = [self guessOurJID];
 
     for (NSDictionary *achat in androidChats) {
         NSString *chatJID = [achat objectForKey:@"key_remote_jid"];
@@ -314,8 +316,7 @@ int main(int argc, const char * argv[]) {
 
             if ([memberJID isEqualToString:@""]) {
                 // This entry corresponds to our account, should add it as well.
-                // But how to get the JID?
-                continue;
+                memberJID = ourJID;
             }
 
             // Check if this member was loaded from iOS backup
@@ -368,6 +369,25 @@ int main(int argc, const char * argv[]) {
 
     self.chats = chats;
     self.chatMembers = chatMembers;
+}
+
+- (NSString *) guessOurJID {
+    NSMutableDictionary *counts = [NSMutableDictionary new];
+
+    for (NSDictionary *members in [self.chatMembers allValues]) {
+        for (NSString *jid in members) {
+            NSNumber *cnt = [counts objectForKey:jid];
+            if (cnt == nil) {
+                cnt = @0;
+            }
+
+            [counts setObject:[NSNumber numberWithInteger:([cnt integerValue] + 1)]
+                       forKey:jid];
+        }
+    }
+
+    // Our jid is present in every chat - should be most frequent one
+    return [[counts keysSortedByValueUsingSelector:@selector(compare:)] lastObject];
 }
 
 - (void) importMessages {
@@ -470,7 +490,6 @@ int main(int argc, const char * argv[]) {
             }
 
             [msg setValue:chat forKey:@"chatSession"];
-            //NSLog(@"(%d) %@", type, text);
         }
 
         // Fix sort fields for newly arrived messages
