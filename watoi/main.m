@@ -90,7 +90,9 @@ int main(int argc, const char * argv[]) {
 
     NSError *error = nil;
     NSURL *storeURL = [NSURL fileURLWithPath:dbPath];
-    NSPersistentStore *store = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:storeURL options:nil error:&error];
+    NSDictionary *options = @{NSSQLitePragmasOption:@{@"journal_mode": @"DELETE"}};
+    NSPersistentStore *store = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil
+                                                           URL:storeURL options:options error:&error];
     NSAssert(store != nil, @"Error initializing PSC: %@\n%@", [error localizedDescription], [error userInfo]);
 
     self.store = store;
