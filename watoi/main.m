@@ -1,6 +1,6 @@
 //
 //  main.m
-//  WhatsApp Importer
+//  WhatsApp Android to iOS
 //
 //  Created by Anton S on 17/01/17.
 //  Copyright © 2017 Anton S. All rights reserved.

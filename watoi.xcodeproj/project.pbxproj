@@ -24,7 +24,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		328769151E2E96B1004139D8 /* whatsapp-importer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "whatsapp-importer"; sourceTree = BUILT_PRODUCTS_DIR; };
+		328769151E2E96B1004139D8 /* watoi */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = watoi; sourceTree = BUILT_PRODUCTS_DIR; };
 		328769181E2E96B1004139D8 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		32DB11561E33A294007406CA /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -44,7 +44,7 @@
 		3287690C1E2E96B0004139D8 = {
 			isa = PBXGroup;
 			children = (
-				328769171E2E96B1004139D8 /* WhatsAppImporter */,
+				328769171E2E96B1004139D8 /* watoi */,
 				328769161E2E96B1004139D8 /* Products */,
 				32DB11551E33A293007406CA /* Frameworks */,
 			);
@@ -53,17 +53,17 @@
 		328769161E2E96B1004139D8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				328769151E2E96B1004139D8 /* whatsapp-importer */,
+				328769151E2E96B1004139D8 /* watoi */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		328769171E2E96B1004139D8 /* WhatsAppImporter */ = {
+		328769171E2E96B1004139D8 /* watoi */ = {
 			isa = PBXGroup;
 			children = (
 				328769181E2E96B1004139D8 /* main.m */,
 			);
-			path = WhatsAppImporter;
+			path = watoi;
 			sourceTree = "<group>";
 		};
 		32DB11551E33A293007406CA /* Frameworks */ = {
@@ -77,9 +77,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		328769141E2E96B0004139D8 /* WhatsAppImporter */ = {
+		328769141E2E96B0004139D8 /* watoi */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 3287691C1E2E96B1004139D8 /* Build configuration list for PBXNativeTarget "WhatsAppImporter" */;
+			buildConfigurationList = 3287691C1E2E96B1004139D8 /* Build configuration list for PBXNativeTarget "watoi" */;
 			buildPhases = (
 				328769111E2E96B0004139D8 /* Sources */,
 				328769121E2E96B0004139D8 /* Frameworks */,
@@ -89,9 +89,9 @@
 			);
 			dependencies = (
 			);
-			name = WhatsAppImporter;
-			productName = "WhatsApp Importer";
-			productReference = 328769151E2E96B1004139D8 /* whatsapp-importer */;
+			name = watoi;
+			productName = watoi;
+			productReference = 328769151E2E96B1004139D8 /* watoi */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -109,7 +109,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 328769101E2E96B0004139D8 /* Build configuration list for PBXProject "WhatsAppImporter" */;
+			buildConfigurationList = 328769101E2E96B0004139D8 /* Build configuration list for PBXProject "watoi" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -121,7 +121,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				328769141E2E96B0004139D8 /* WhatsAppImporter */,
+				328769141E2E96B0004139D8 /* watoi */,
 			);
 		};
 /* End PBXProject section */
@@ -230,21 +230,21 @@
 		3287691D1E2E96B1004139D8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "whatsapp-importer";
+				PRODUCT_NAME = "watoi";
 			};
 			name = Debug;
 		};
 		3287691E1E2E96B1004139D8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "whatsapp-importer";
+				PRODUCT_NAME = "watoi";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		328769101E2E96B0004139D8 /* Build configuration list for PBXProject "WhatsAppImporter" */ = {
+		328769101E2E96B0004139D8 /* Build configuration list for PBXProject "watoi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3287691A1E2E96B1004139D8 /* Debug */,
@@ -253,7 +253,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3287691C1E2E96B1004139D8 /* Build configuration list for PBXNativeTarget "WhatsAppImporter" */ = {
+		3287691C1E2E96B1004139D8 /* Build configuration list for PBXNativeTarget "watoi" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3287691D1E2E96B1004139D8 /* Debug */,
