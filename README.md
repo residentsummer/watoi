@@ -30,7 +30,7 @@ Migrate Whatsapp chats history from Android to iOS.
   Find the latest backup in `~/Library/Application Support/MobileSync/Backup`.
 * Locate Whatsapp database file inside the backup and copy it somewhere:
 
-      $ sqlite3 <backup>/MetaInfo.db select ...
+      $ sqlite3 <backup>/Manifest.db "select fileID from Files where relativePath = 'ChatStorage.sqlite' and domain like '%whatsapp%';"
       abcdef01234567890
       $ cp <backup>/ab/abcdef01234567890 ~/Downloads/watoi/ChatStorage.sqlite
 
