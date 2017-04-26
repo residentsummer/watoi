@@ -12,7 +12,7 @@ Migrate Whatsapp chats history from Android to iOS.
 * Mac with installed Xcode and iTunes
 * Decrypted `msgstore.db` from Android
 * Installed and activated Whatsapp on your iDevice
-* `Whatsapp.ipa` of the same version (google for it)
+* `Whatsapp.ipa` of the same version (google will help)
 
 ## Step-by-step guide
 
@@ -28,29 +28,30 @@ Migrate Whatsapp chats history from Android to iOS.
 
 * Create an unencrypted backup to local computer (not iCloud) with iTunes.
   Find the latest backup in `~/Library/Application Support/MobileSync/Backup`.
-* Find Whatsapp database file inside the backup and copy it somewhere:
+* Locate Whatsapp database file inside the backup and copy it somewhere:
 
       $ sqlite3 <backup>/MetaInfo.db select ...
       abcdef01234567890
       $ cp <backup>/ab/abcdef01234567890 ~/Downloads/watoi/ChatStorage.sqlite
 
-* Extract the contents of `Whatapp.ipa` (we'll need CoreData description files):
+* Extract the contents of `Whatsapp.ipa` (we'll need CoreData description files):
 
       cd ~/Downloads/watoi
       unzip ~/Downloads/WhatsApp_Messenger_x.y.z.ipa -d app
       
 * Backup original database and run the migration:
       
-      cp ChatStorage.sqlite ~/Documents/SafePlace
+      cp ChatStorage.sqlite ~/Documents/SafePlace/
       build/Release/watoi <path-to-msgstore.db> ChatStorage.sqlite app/Payload/WhatsApp.app/WhatsAppChat.momd
       
 * Replace database file inside the backup with the updated one:
 
-      cp ChatStorage.sqlite "~/Library/Application Support/MobileSync/Backup/<backup>/xx/xxyyyyyyy"
+      cp ChatStorage.sqlite "~/Library/Application Support/MobileSync/Backup/<backup>/ab/abcdef01234567890"
       
 * Restore the backup with iTunes
 
 ## More TODOs
 
-* Automate backup editing (skip manual ChatStorage extraction/replacement)
+* Automate backup editing (skip manual ChatStorage locate/extract/replace)
+* Better command-line parsing (better than none)
 
