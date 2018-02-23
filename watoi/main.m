@@ -227,7 +227,9 @@ int main(int argc, const char * argv[]) {
     NSManagedObject *chat = [self.chats objectForKey:chatJID];
 
     [member setValue:memberJID forKey:@"memberJID"];
-    [member setValue:isAdmin forKey:@"isAdmin"];
+    if (![isAdmin isKindOfClass:[NSNull class]]) {
+        [member setValue:isAdmin forKey:@"isAdmin"];
+    }
     // Active members were loaded from backup
     [member setValue:@NO forKey:@"isActive"];
 
