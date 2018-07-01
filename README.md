@@ -38,20 +38,23 @@ Migrate Whatsapp chats history from Android to iOS.
 
       cd ~/Downloads/watoi
       unzip ~/Downloads/WhatsApp_Messenger_x.y.z.ipa -d app
-      
+
 * Backup original database and run the migration:
-      
+
       cp ChatStorage.sqlite ~/Documents/SafePlace/
       build/Release/watoi <path-to-msgstore.db> ChatStorage.sqlite app/Payload/WhatsApp.app/WhatsAppChat.momd
-      
+
 * Replace database file inside the backup with the updated one:
 
       cp ChatStorage.sqlite "~/Library/Application Support/MobileSync/Backup/<backup>/ab/abcdef01234567890"
-      
+
 * Restore the backup with iTunes
+
+## Troubleshooting
+
+[![Gitter](https://badges.gitter.im/gitterHQ/gitter.svg)](https://gitter.im/residentsummer_watoi/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ## More TODOs
 
 * Automate backup editing (skip manual ChatStorage locate/extract/replace)
 * Better command-line parsing (better than none)
-
