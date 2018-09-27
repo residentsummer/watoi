@@ -79,6 +79,25 @@ int main(int argc, const char * argv[]) {
 @implementation Importer
 
 - (void) initializeCoreDataWithMomd:(NSString *)momdPath andDatabase:(NSString *)dbPath {
+    NSFileManager *mgr = [NSFileManager defaultManager];
+    BOOL isMomdADir = NO;
+
+    NSLog(@"Probing WhatsAppChat.momd at path: %@", momdPath);
+    if ([mgr fileExistsAtPath:momdPath isDirectory:&isMomdADir] && isMomdADir) {
+        NSLog(@"    ok.");
+    } else {
+        NSLog(@"    missing/not a dir!");
+        abort();
+    }
+
+    NSLog(@"Probing ChatStorage.sqlite at path: %@", dbPath);
+    if ([mgr isReadableFileAtPath:dbPath]) {
+        NSLog(@"    ok.");
+    } else {
+        NSLog(@"    missing/not writable!");
+        abort();
+    }
+
     NSURL *modelURL = [NSURL fileURLWithPath:momdPath];
     NSManagedObjectModel *mom = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
     NSAssert(mom != nil, @"Error initializing Managed Object Model");
@@ -102,7 +121,16 @@ int main(int argc, const char * argv[]) {
 }
 
 - (void) initializeAndroidStoreFromPath:(NSString *)storePath {
+    NSFileManager *mgr = [NSFileManager defaultManager];
     sqlite3 *store = nil;
+
+    NSLog(@"Probing msgstore.db at path: %@", storePath);
+    if ([mgr isReadableFileAtPath:storePath]) {
+        NSLog(@"    ok.");
+    } else {
+        NSLog(@"    missing/not readable!");
+        abort();
+    }
 
     if (sqlite3_open([storePath UTF8String], &store) != SQLITE_OK) {
         NSLog(@"%s", sqlite3_errmsg(store));
