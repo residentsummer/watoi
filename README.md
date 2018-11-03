@@ -42,7 +42,7 @@ Migrate Whatsapp chats history from Android to iOS.
 * Backup original database and run the migration:
 
       cp ChatStorage.sqlite ~/Documents/SafePlace/
-      build/Release/watoi <path-to-msgstore.db> ChatStorage.sqlite app/Payload/WhatsApp.app/WhatsAppChat.momd
+      build/Release/watoi <path-to-msgstore.db> ChatStorage.sqlite app/Payload/WhatsApp.app/Frameworks/Core.framework/WhatsAppChat.momd
 
 * Replace database file inside the backup with the updated one:
 
