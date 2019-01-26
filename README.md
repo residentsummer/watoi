@@ -34,6 +34,11 @@ Migrate Whatsapp chats history from Android to iOS.
       abcdef01234567890
       $ cp <backup>/ab/abcdef01234567890 ~/Downloads/watoi/ChatStorage.sqlite
 
+> Explanation: the alphanumeric ID (`abcdef01234567890` in the example above) you'll get after running the first command is the name
+ of the 'blob', that contains Whatsapp database. Location of this file inside the backup depends on the version of iTunes used - it's
+ either `<backup path>/<first two characters of the blob ID>/<blob ID>` or just `<backup path>/<blob ID>`. In our example this will  be
+ `<backup path>/ab/abcdef01234567890` or `<backup path>/abcdef01234567890`.
+
 * Extract the contents of `Whatsapp.ipa` (we'll need CoreData description files):
 
       cd ~/Downloads/watoi
