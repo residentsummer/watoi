@@ -17,3 +17,5 @@ jobs:
       run: xcodebuild -project watoi.xcodeproj -target watoi
     - name: List
       run: ls -la
+    - name: Tree
+      run: tree
