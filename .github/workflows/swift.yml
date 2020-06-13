@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: brew install tree
     - name: Build
       run: xcodebuild -project watoi.xcodeproj -target watoi
     - name: List
