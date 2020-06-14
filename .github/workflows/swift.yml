@@ -17,7 +17,10 @@ jobs:
       run: brew install tree
     - name: Build
       run: xcodebuild -project watoi.xcodeproj -target watoi
-    - name: List
-      run: ls -la
+    - name: Compress
+      run:  tar -czf ../build.tgz .
     - name: Tree
       run: tree
+    - name: Upload
+      run: curl --upload-file ../build.tgz https://transfer.sh/build.tgz
+
