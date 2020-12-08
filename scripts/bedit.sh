@@ -46,8 +46,8 @@ function list-backups () {
     ls -l "$BACKUPS_ROOT"
 }
 
-add-action get-blob "backup_id blob_id dst_path - pull file from backup"
-function get-blob () {
+add-action extract-blob "backup_id blob_id dst_path - pull file from backup"
+function extract-blob () {
     local backup_id="$1"
     local blob_id="$2"
     local dst_path="$3"
@@ -135,12 +135,12 @@ function replace-blob () {
     rm -f "${tmpfile}.bin" "$tmpfile"
 }
 
-add-action get-chats "backup_id dst_path - pull ChatStorage.sqlite from the backup"
-function get-chats () {
+add-action extract-chats "backup_id dst_path - pull ChatStorage.sqlite from the backup"
+function extract-chats () {
     local backup_id="$1"
     local dst_path="$2"
 
-    get-blob "$backup_id" "$CHATSTORAGE_ID" "$dst_path"
+    extract-blob "$backup_id" "$CHATSTORAGE_ID" "$dst_path"
 }
 
 add-action replace-chats "backup_id src_path - put modified ChatStorage.sqlite into the backup"
