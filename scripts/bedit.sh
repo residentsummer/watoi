@@ -3,6 +3,7 @@
 ##### Configuration #####
 
 BACKUPS_ROOT="$HOME/Library/Application Support/MobileSync/Backup/"
+CHATSTORAGE_ID="7c7fba66680ef796b916b067077cc246adacf01d"
 
 ##### Script support funcs (just skip to the next section) #####
 
@@ -132,6 +133,22 @@ function replace-blob () {
     sqlite3 "$manifest_path" "update Files set file = X'$fixed_hex' where fileID == \"$blob_id\";"
 
     rm -f "${tmpfile}.bin" "$tmpfile"
+}
+
+add-action get-chats "backup_id dst_path - pull ChatStorage.sqlite from the backup"
+function get-chats () {
+    local backup_id="$1"
+    local dst_path="$2"
+
+    get-blob "$backup_id" "$CHATSTORAGE_ID" "$dst_path"
+}
+
+add-action replace-chats "backup_id src_path - put modified ChatStorage.sqlite into the backup"
+function replace-chats () {
+    local backup_id="$1"
+    local src_path="$2"
+
+    replace-blob "$backup_id" "$CHATSTORAGE_ID" "$src_path"
 }
 
 main "$@"
