@@ -254,7 +254,11 @@ int main(int argc, const char * argv[]) {
     NSMutableDictionary * members = [self.chatMembers objectForKey:chatJID];
     NSManagedObject *chat = [self.chats objectForKey:chatJID];
 
-    [member setValue:memberJID forKey:@"memberJID"];
+    if (![memberJID isKindOfClass:[NSNull class]]) {
+        [member setValue:memberJID forKey:@"memberJID"];
+    } else {
+        [member setValue:@"null" forKey:@"memberJID"];
+    }
     if (![isAdmin isKindOfClass:[NSNull class]]) {
         [member setValue:isAdmin forKey:@"isAdmin"];
     }
@@ -458,10 +462,6 @@ int main(int argc, const char * argv[]) {
                 if (isGroup) {
                     NSString *senderJID = [amsg objectForKey:@"remote_resource"];
                     NSManagedObject *member = [members objectForKey:senderJID];
-                    if (member == nil) {
-                        NSLog(@"\tmissing sender %@", senderJID);
-                        member = [self addMissingMember:senderJID toChat:chatJID asAdmin:@NO];
-                    }
 
                     [msg setValue:member forKey:@"groupMember"];
                 }
@@ -521,6 +521,7 @@ int main(int argc, const char * argv[]) {
                 [msg setValue:text forKey:@"text"];
             } else {
                 NSLog(@"null text detected: %@", amsg);
+                [msg setValue:@"<null>" forKey:@"text"];
             }
 
             [msg setValue:chat forKey:@"chatSession"];
