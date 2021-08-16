@@ -19,6 +19,7 @@ Migrate Whatsapp chats history from Android to iOS.
 * Check that Whatsapp is activated on iDevice. You should see the list of *group* chats
   when you open the app. Most likely, there won't be any messages prior to moving to iOS.
   You can even send/receive a message or two to be sure that there is something to back up.
+* If you're on Mac OS 10.14 or later, [enable full disk access for your terminal app](https://osxdaily.com/2018/10/09/fix-operation-not-permitted-terminal-error-macos/).
 * Build the migration utility (I'll assume `~/Downloads` folder):
 
       cd ~/Downloads
