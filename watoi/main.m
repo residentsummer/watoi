@@ -322,7 +322,7 @@ int main(int argc, const char * argv[]) {
             NSManagedObject *group = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupInfo"
                                                                    inManagedObjectContext:self.moc];
 
-            NSDate *creation = [self convertAndroidTimestamp:[achat objectForKey:@"creation"]];
+            NSDate *creation = [self convertAndroidTimestamp:[achat objectForKey:@"created_timestamp"]];
             [group setValue:creation forKey:@"creationDate"];
 
             [group setValue:chat forKey:@"chatSession"];
