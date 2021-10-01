@@ -273,7 +273,7 @@ int main(int argc, const char * argv[]) {
 }
 
 - (void) importChats {
-    NSArray * androidChats = [self executeQuery:@"SELECT * FROM chat_view"];
+    NSArray * androidChats = [self executeQuery:@"SELECT * FROM chat_view WHERE hidden = 0"];
     NSNull *null = [NSNull null];  // Stupid singleton
     NSString *ourJID = nil;
 
