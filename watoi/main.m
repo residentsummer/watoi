@@ -273,7 +273,7 @@ int main(int argc, const char * argv[]) {
 }
 
 - (void) importChats {
-    NSArray * androidChats = [self executeQuery:@"SELECT * FROM chat_list"];
+    NSArray * androidChats = [self executeQuery:@"SELECT * FROM chat_view WHERE hidden = 0"];
     NSNull *null = [NSNull null];  // Stupid singleton
     NSString *ourJID = nil;
 
@@ -284,7 +284,7 @@ int main(int argc, const char * argv[]) {
     ourJID = [self guessOurJID];
 
     for (NSDictionary *achat in androidChats) {
-        NSString *chatJID = [achat objectForKey:@"key_remote_jid"];
+        NSString *chatJID = [achat objectForKey:@"raw_string_jid"];
         NSManagedObject *chat = [self.chats objectForKey:chatJID];
         NSMutableDictionary *members = nil;
         BOOL isGroup = FALSE;
@@ -322,7 +322,7 @@ int main(int argc, const char * argv[]) {
             NSManagedObject *group = [NSEntityDescription insertNewObjectForEntityForName:@"WAGroupInfo"
                                                                    inManagedObjectContext:self.moc];
 
-            NSDate *creation = [self convertAndroidTimestamp:[achat objectForKey:@"creation"]];
+            NSDate *creation = [self convertAndroidTimestamp:[achat objectForKey:@"created_timestamp"]];
             [group setValue:creation forKey:@"creationDate"];
 
             [group setValue:chat forKey:@"chatSession"];
@@ -425,7 +425,7 @@ int main(int argc, const char * argv[]) {
 }
 
 - (void) importMessages {
-    NSString *query = @"SELECT * FROM messages where"
+    NSString *query = @"SELECT * FROM legacy_available_messages_view where"
                        " key_remote_jid == '%@'"
                        " AND status != 6"  // Some system messages
                        " ORDER BY timestamp";
