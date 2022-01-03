@@ -7,9 +7,24 @@ Migrate Whatsapp chats history from Android to iOS.
 * Media files and shared locations are not imported (got placeholders instead)
 * Messages from contacts that changed ids (phone numbers) are not linked
 
+## User-contributed guides
+
+Thanks to our excellent community members, there are few guides that may be easier
+to follow than one written by me. Some of them include instructions on how to
+extract whatsapp database from Android phone.
+
+* 2021-11-17: [full guide](https://github.com/tim25651/WhatsApp2iOS) by @tim25651
+* 2021-12-30: [full guide](https://github.com/needs-coffee/Whatsapp-android-to-ios-guide) by @needs-coffee, on Windows via MacOS VM
+
+Many users also contributed tips on how to get certain prerequisites done.
+
+* 2021-01-07: [getting database from Android](https://github.com/residentsummer/watoi/issues/35#issue-780915054) by @MaxWolodin
+* 2021-06-23: [MacOS VM setup](https://gist.github.com/5E7EN/6c55297856c36efc6e0921b0eeff72d0) by @5E7EN
+* See #9, #27, #28, #35, #36 and #43 for more tips and cases
+
 ## Prerequisites
 
-* Mac with installed Xcode and iTunes
+* Mac with installed Xcode and iTunes (or MacOS VM)
 * Decrypted `msgstore.db` from Android
 * Installed and activated Whatsapp on your iDevice
 * `Whatsapp.ipa` of the same version (google will help)
