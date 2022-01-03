@@ -20,7 +20,7 @@ Many users also contributed tips on how to get certain prerequisites done.
 
 * 2021-01-07: [getting database from Android](https://github.com/residentsummer/watoi/issues/35#issue-780915054) by @MaxWolodin
 * 2021-06-23: [MacOS VM setup](https://gist.github.com/5E7EN/6c55297856c36efc6e0921b0eeff72d0) by @5E7EN
-* See #9, #27, #28, #35, #36 and #43 for more tips and cases
+* See [#9](https://github.com/residentsummer/watoi/issues/9), [#27](https://github.com/residentsummer/watoi/issues/27), [#28](https://github.com/residentsummer/watoi/issues/28), [#35](https://github.com/residentsummer/watoi/issues/35) and [#43](https://github.com/residentsummer/watoi/issues/43) for more tips and cases
 
 ## Prerequisites
 
